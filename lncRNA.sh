@@ -99,5 +99,15 @@ cd GTFs
 stringtie --merge -l CombGTF -p 64 -G genome_coordinates/gff3/homo_sapiens.GRCh38.gff3 -m $min_tr_lenght -F $min_FPKM -f $min_isoform_fract -g $min_gap -i -o ./mergedGtf.gtf *merged.perCond.gtf
 stringtie --merge -l CombGTF -p 64 -G genome_coordinates/gff3/homo_sapiens.GRCh38.gff3 -m $min_tr_lenght -F $min_FPKM -f $min_isoform_fract -g $min_gap -i -o ./CombGTF.gtf mergedBam.gtf mergedGtf.gtf 
 
+printf "Number of discovered transcripts in combined conditions transcriptome:\n\n"
+grep "	transcript	"  mergedBam.gtf | wc -l
+
+printf "Number of discovered transcripts in per condition transcriptome:\n\n"
+grep "	transcript	"  mergedGtf.gtf | wc -l
+
+printf "Number of discovered transcripts in merged GTF - per condition and combined conditions :\n\n"
+grep "	transcript	"  CombGTF.gtf | wc -l
+
+
 cat mergedBam.tm
 cat percondBam.tm
