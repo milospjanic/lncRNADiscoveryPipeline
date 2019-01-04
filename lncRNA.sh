@@ -13,9 +13,10 @@ SECONDS=0
 
 ###fastqc quality control - requires fastqc installed and placed in PATH
 
-mkdir GTFs
-
 printf "Analyzing combined conditions transcriptome using:\n\n"
+
+cd $BAM_DIR
+mkdir GTFs
 
 ls -1 *bam
 
@@ -37,7 +38,7 @@ samtools index merged.bam
 ls -l merged.bam merged.bam.bai
 
 echo "Stringtie analysis of combined conditions.."
-stringtie -l MergedBAM -p 64 -m $min_tr_lenght -f $min_isoform_fract -g $locus_gap -o GTFs/mergedBam.gtf mergedBam_sort.bam
+stringtie -l MergedBAM -p 64 -m $min_tr_lenght -f $min_isoform_fract -g $locus_gap -o GTFs/mergedBam.gtf merged.bam
 
 duration=$SECONDS
 echo "Stringtie analysis of combined conditions: $(($duration / 60)) minutes and $(($duration % 60)) seconds elapsed." > mergedBam.tm
@@ -114,3 +115,5 @@ grep "	transcript	"  CombGTF.gtf | wc -l
 
 cat mergedBam.tm
 cat percondBam.tm
+
+
