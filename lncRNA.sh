@@ -27,13 +27,13 @@ chmod 755 commands.1
 #./commands.1
 
 
-find $BAM_DIR -name '*.bam' | {
+find . -name '*.bam' | {
     read firstbam
     samtools view -h "$firstbam"
     while read bam; do
         samtools view "$bam"
     done
-} | samtools view -ubS - | samtools sort - merged
+} | samtools view -ubS - | samtools sort - -o merged.bam
 samtools index merged.bam
 ls -l merged.bam merged.bam.bai
 
@@ -98,6 +98,9 @@ wget ftp://ftp.ebi.ac.uk/pub/databases/RNAcentral/releases/10.0/genome_coordinat
 gunzip homo_sapiens.GRCh38.gff3.gz
 
 printf "Merging GTFs: combined condition and condition specific..\n\n"
+
+
+mv homo_sapiens.GRCh38.gff3 GTFs
 cd GTFs
 
 stringtie --merge -l CombGTF -p 64 -G homo_sapiens.GRCh38.gff3 -m $min_tr_lenght -F $min_FPKM -f $min_isoform_fract -g $transcript_merge_gap -i -o ./mergedGtf.gtf *merged.perCond.gtf
@@ -115,5 +118,3 @@ grep "	transcript	"  CombGTF.gtf | wc -l
 
 cat mergedBam.tm
 cat percondBam.tm
-
-
