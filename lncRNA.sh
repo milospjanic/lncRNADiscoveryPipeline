@@ -33,7 +33,7 @@ find . -name '*.bam' | {
     while read bam; do
         samtools view "$bam"
     done
-} | samtools view -ubS - | samtools sort - -o merged.bam
+} | samtools view -ubS - | samtools sort - -m 5000000000 -o merged.bam
 samtools index merged.bam
 ls -l merged.bam merged.bam.bai
 
@@ -86,6 +86,7 @@ rm merged.name
 rm *tmp.txt
 rm *.tmp
 
+chmod 755 per.condition.sh
 ./per.condition.sh 
 
 duration=$SECONDS
@@ -118,3 +119,4 @@ grep "	transcript	"  CombGTF.gtf | wc -l
 
 cat mergedBam.tm
 cat percondBam.tm
+
