@@ -73,7 +73,7 @@ sed 's/samtools sort -o /samtools index /g' merged.sort.name >> per.condition.sh
 sed -i 's/samtools sort -o //g' merged.sort.name
 
 sed 's/$/.merged.perCond.gtf/g' merged.name > merged.name.gtf
-sed -i 's/^/-p 64 -m $min_tr_lenght -f $min_isoform_fract -g $locus_gap -o GTFs\//g' merged.name.gtf 
+sed -i 's/^/-p 64 -m '${min_tr_lenght}' -f '${min_isoform_fract}' -g '${locus_gap}' -o GTFs\//g' merged.name.gtf 
 sed 's/^/stringtie -l /g' merged.name > begin.tmp
 
 paste -d " " begin.tmp merged.name.gtf merged.sort.name >> per.condition.sh
@@ -119,4 +119,3 @@ grep "	transcript	"  CombGTF.gtf | wc -l
 
 cat mergedBam.tm
 cat percondBam.tm
-
