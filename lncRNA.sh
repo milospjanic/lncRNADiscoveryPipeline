@@ -18,27 +18,36 @@ printf "Analyzing combined conditions transcriptome using:\n\n"
 cd $BAM_DIR
 mkdir GTFs
 
-ls -1 *bam
+ls -1 *clean.bam
 
-ls -1 *bam | tr '\n' ' ' > commands.1
+ls -1 *clean.bam | tr '\n' ' ' > commands.1
 sed -i 's/^/bamtools merge /g' commands.1
 sed -i 's/$/ -out merged.bam/g' commands.1
 chmod 755 commands.1
 #./commands.1
 
+wget ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_29/GRCh37_mapping/gencode.v29lift37.annotation.gtf.gz
+gunzip gencode.v29lift37.annotation.gtf.gz
+mv gencode.v29lift37.annotation.gtf GTFs
 
-find . -name '*.bam' | {
+find . -name '*clean.bam' | {
     read firstbam
     samtools view -h "$firstbam"
     while read bam; do
         samtools view "$bam"
     done
-} | samtools view -ubS - | samtools sort - -m 5000000000 -o merged.bam
+} | samtools view -ubS - | samtools sort - -m 7500000000 -o merged.bam
 samtools index merged.bam
 ls -l merged.bam merged.bam.bai
 
 echo "Stringtie analysis of combined conditions.."
-stringtie -l MergedBAM -p 64 -m $min_tr_lenght -f $min_isoform_fract -g $locus_gap -o GTFs/mergedBam.gtf merged.bam
+echo stringtie -l MergedBAM -G GTFs/gencode.v29lift37.annotation.gtf -p 64 -m $min_tr_lenght -f $min_isoform_fract -g $locus_gap -j 10 -c 15 -o mergedBam.gtf merged.bam > commands.2.sh
+chmod 755 commands.2.sh
+./commands.2.sh
+
+mv mergedBam.gtf GTFs
+#find . -name mergedBam.gtf.tmp | xargs -I % sh -c 'echo %;grep chr %;' > mergedBam.gtf.tmp.gtf
+#mv mergedBam.gtf.tmp.gtf GTFs/mergedBam.gtf
 
 duration=$SECONDS
 echo "Stringtie analysis of combined conditions: $(($duration / 60)) minutes and $(($duration % 60)) seconds elapsed." > mergedBam.tm
@@ -74,7 +83,7 @@ sed -i 's/samtools sort -o //g' merged.sort.name
 
 sed 's/$/.merged.perCond.gtf/g' merged.name > merged.name.gtf
 sed -i 's/^/-p 64 -m '${min_tr_lenght}' -f '${min_isoform_fract}' -g '${locus_gap}' -o GTFs\//g' merged.name.gtf 
-sed 's/^/stringtie -l /g' merged.name > begin.tmp
+sed 's/^/stringtie -G GTFs\/gencode.v29lift37.annotation.gtf -l /g' merged.name > begin.tmp
 
 paste -d " " begin.tmp merged.name.gtf merged.sort.name >> per.condition.sh
 
@@ -95,17 +104,18 @@ echo "Stringtie analysis of per condition transcriptome: $(($duration / 60)) min
 SECONDS=0
 
 printf "Downloading reference annotation..\n\n"
-wget ftp://ftp.ebi.ac.uk/pub/databases/RNAcentral/releases/10.0/genome_coordinates/gff3/homo_sapiens.GRCh38.gff3.gz
-gunzip homo_sapiens.GRCh38.gff3.gz
+#wget ftp://ftp.ebi.ac.uk/pub/databases/RNAcentral/releases/10.0/genome_coordinates/gff3/homo_sapiens.GRCh38.gff3.gz
+#gunzip homo_sapiens.GRCh38.gff3.gz
+
 
 printf "Merging GTFs: combined condition and condition specific..\n\n"
 
 
-mv homo_sapiens.GRCh38.gff3 GTFs
+#mv homo_sapiens.GRCh38.gff3 GTFs
 cd GTFs
 
-stringtie --merge -l CombGTF -p 64 -G homo_sapiens.GRCh38.gff3 -m $min_tr_lenght -F $min_FPKM -f $min_isoform_fract -g $transcript_merge_gap -i -o ./mergedGtf.gtf *merged.perCond.gtf
-stringtie --merge -l CombGTF -p 64 -G homo_sapiens.GRCh38.gff3 -m $min_tr_lenght -F $min_FPKM -f $min_isoform_fract -g $transcript_merge_gap -i -o ./CombGTF.gtf mergedBam.gtf mergedGtf.gtf 
+stringtie --merge -l CombGTF -p 64 -G gencode.v29lift37.annotation.gtf -m $min_tr_lenght -F $min_FPKM -f $min_isoform_fract -g $transcript_merge_gap -i -o ./mergedGtf.gtf *merged.perCond.gtf
+stringtie --merge -l CombGTF -p 64 -G gencode.v29lift37.annotation.gtf -m $min_tr_lenght -F $min_FPKM -f $min_isoform_fract -g $transcript_merge_gap -i -o ./CombGTF.gtf mergedBam.gtf mergedGtf.gtf 
 
 printf "Number of discovered transcripts in combined conditions transcriptome:\n\n"
 grep "	transcript	"  mergedBam.gtf | wc -l
@@ -119,3 +129,4 @@ grep "	transcript	"  CombGTF.gtf | wc -l
 
 cat mergedBam.tm
 cat percondBam.tm
+
