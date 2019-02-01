@@ -36,7 +36,7 @@ find . -name '*clean.bam' | {
     while read bam; do
         samtools view "$bam"
     done
-} | samtools view -ubS - | samtools sort - -m 7500000000 -o merged.bam
+} | samtools view -ubS - | samtools sort - -m 100000000000 -o merged.bam
 samtools index merged.bam
 ls -l merged.bam merged.bam.bai
 
