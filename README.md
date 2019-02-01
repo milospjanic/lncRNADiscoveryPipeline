@@ -10,12 +10,12 @@ Thrid part will merge gtf files from per-condition analysis into a single gtf an
 
 ![alt text](https://github.com/milospjanic/lncRNADiscoveryPipeline/blob/master/scheme.png)
 
-#Requirements
+# Requirements
 
 Stringtie
 Samtools
 
-#Example run
+# Example run
 
 Bam files must be in a same folder with *clean.bam* extension
 
